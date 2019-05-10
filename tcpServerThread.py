@@ -22,11 +22,11 @@ class TCPServerThread(threading.Thread):
                 if not data:
                     print('tcp server :: exit :', self.connection)
                     break
+                print('tcp server :: client :', data)
 
+                # 받은 데이터만 다시 보내는 경우
                 self.send(data)
 
-
-                print('tcp server :: client :', data)
                 self.commandQueue.put(data)
         except:
             self.connections.remove(self.connection)
@@ -37,7 +37,7 @@ class TCPServerThread(threading.Thread):
         self.tcpServerThreads.remove(self)
 
     def send(self, message):
-        print('tcp server :: ', message)
+        print('tcp server :: server ', message)
         try:
             for i in range(len(self.connections)):
                 self.connections[i].sendall(message.encode())
