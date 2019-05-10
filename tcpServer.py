@@ -33,6 +33,7 @@ class TCPServer(threading.Thread):
         except:
             print("tcp server :: serverThread error")
 
+    # 연결된 클라이언트 모두에게 전송하는 기능 (되도록 사용 자제)
     def sendAll(self, message):
         try:
             self.tcpServerThreads[0].send(message)
