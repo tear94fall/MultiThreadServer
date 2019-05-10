@@ -3,5 +3,5 @@ class Executer:
         self.andRaspTCP = tcp_server
 
     def startCommand(self, command):
-        if command == "123":
+        if command == "@@@@@":
             self.andRaspTCP.sendAll("321")
