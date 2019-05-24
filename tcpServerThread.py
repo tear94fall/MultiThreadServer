@@ -20,9 +20,9 @@ class TCPServerThread(threading.Thread):
 
                 # when break connection
                 if not data:
-                    print('tcp server :: exit :', self.connection)
+                    print('tcp server :: exit :', self.clientAddress)
                     break
-                print('tcp server :: client :', data)
+                # print('tcp server :: client :', data)
 
                 # 받은 데이터만 다시 보내는 경우
                 self.send(data)

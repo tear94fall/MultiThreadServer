@@ -1,5 +1,9 @@
-import socket, threading
+import asyncio
+import socket
+import threading
 import tcpServerThread
+
+from mysql_connector import test_example
 
 
 class TCPServer(threading.Thread):
@@ -17,6 +21,8 @@ class TCPServer(threading.Thread):
         self.connections = []
         self.tcpServerThreads = []
 
+        self.loop = asyncio.get_event_loop()
+
     def run(self):
         try:
             while True:
@@ -27,6 +33,9 @@ class TCPServer(threading.Thread):
 
                 sub_thread = tcpServerThread.TCPServerThread(self.commandQueue, self.tcpServerThreads,
                                                             self.connections, connection, client_address)
+
+                # MySQL 연동 부분
+                self.loop.run_until_complete(test_example())
 
                 sub_thread.start()
                 self.tcpServerThreads.append(sub_thread)
