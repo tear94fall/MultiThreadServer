@@ -34,9 +34,6 @@ class TCPServer(threading.Thread):
                 sub_thread = tcpServerThread.TCPServerThread(self.commandQueue, self.tcpServerThreads,
                                                             self.connections, connection, client_address)
 
-                # MySQL 연동 부분
-                self.loop.run_until_complete(test_example())
-
                 sub_thread.start()
                 self.tcpServerThreads.append(sub_thread)
         except:
