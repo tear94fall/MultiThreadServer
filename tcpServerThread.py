@@ -40,7 +40,7 @@ class TCPServerThread(threading.Thread):
 
                 self.request_binder(request_number)
 
-                #self.commandQueue.put(data)
+                # self.commandQueue.put(data)
         except:
             self.connections.remove(self.connection)
             self.tcpServerThreads.remove(self)
@@ -51,32 +51,55 @@ class TCPServerThread(threading.Thread):
 
     def request_binder(self, request_number: int):
         request_number = int(request_number)
+
+        # 2번요청
         if request_number == 2:
+            print("tcp server :: request :: start :: echo")
             self.send(self.Buffer)
+            print("tcp server :: response :: end :: echo")
 
+        # 4번요청
         elif request_number == 4:
+            print("tcp server :: request :: start :: Container init")
             self.ContainerInit(self.Buffer)
+            print("tcp server :: response :: end :: Container init")
 
+        # 6번요청
         elif request_number == 6:
+            print("tcp server :: request :: start :: Container delete")
             self.DeleteContainerTable(self.Buffer)
+            print("tcp server :: response :: end :: Container delete")
 
+        # 8번요청
         elif request_number == 8:
-            pass
+            print("tcp server :: request :: start :: Object Insert")
+            self.InsertNewContent(self.Buffer)
+            print("tcp server :: response :: end :: Object Insert")
 
+        # 10번요청
         elif request_number == 10:
-            pass
+            print("tcp server :: request :: start :: Get All Object")
+            self.GetContainerAllOject(self.Buffer)
+            print("tcp server :: response :: end :: Get All Object")
 
+        # 12번요청
         elif request_number == 12:
-            pass
+            print("tcp server :: request :: start :: Delete Object")
+            self.DeleteContainerObject(self.Buffer)
+            print("tcp server :: response :: end :: Delete Object")
 
     # 2번 요청
     def send(self, message):
         print('tcp server :: send to client : ', message)
+        self.connection.send(str(message).encode())
+
+        '''
         try:
             for i in range(len(self.connections)):
                 self.connections[i].sendall(message.encode())
         except:
             pass
+            '''
 
     # 4번 요청
     # 컨테이너 초기화 진행
@@ -97,7 +120,8 @@ class TCPServerThread(threading.Thread):
 
         current_container_key = sha256.hexdigest()
 
-        self.connection.send(current_container_key.encode())
+        response_data = {'current_conatiner_key': current_container_key, 'new_container_key': new_container_idx}
+        self.connection.send(str(response_data).encode())
 
         insert_data = {}
         insert_data['idx'] = new_container_idx
@@ -107,7 +131,7 @@ class TCPServerThread(threading.Thread):
 
         # 테이블 생성
 
-        insert_data ={}
+        insert_data = {}
         insert_data['table_id'] = new_container_idx
         create_table = loop.run_until_complete(create_table_function(loop, str(insert_data)))
 
@@ -119,18 +143,58 @@ class TCPServerThread(threading.Thread):
         target_contrainer = str(target_contrainer)
 
         # 컨테이너 삭제 요청
-        insert_data ={}
+        insert_data = {}
         insert_data['target_container'] = target_contrainer
         id_from_hash = loop.run_until_complete(find_id_from_hash(loop, str(insert_data)))
         id_from_hash = literal_eval(str(id_from_hash[0]))
         id_from_hash = id_from_hash['idx']
 
-        insert_data ={}
+        insert_data = {}
         insert_data['target_container_name'] = id_from_hash
         drop_target_container_table = loop.run_until_complete(delete_target_container(loop, str(insert_data)))
 
-        insert_data ={}
+        insert_data = {}
         insert_data['target_container_idx'] = id_from_hash
         drop_target_container_column = loop.run_until_complete(delete_target_container_column(loop, str(insert_data)))
 
         self.connection.send(target_contrainer.encode())
+
+    # 8번 요청
+    # 컨테이너에 물건을 실었을때 항목을 추가하는 함수
+    def InsertNewContent(self, data):
+        data_dict = literal_eval(data)
+        cont_table_name = data_dict['cont_table_name']
+        object_weight = data_dict['object_weight']
+
+        # 컨테이너에 정보 삽입
+        insert_data = {'table_name': cont_table_name, 'object_weight': object_weight}
+        result = loop.run_until_complete(insert_new_object(loop, str(insert_data)))
+
+        self.connection.send(result.encode())
+
+    # 10 번 요청
+    # 컨테이너 테이블에 있는 모든 데이터를 전송한다
+    def GetContainerAllOject(self, data):
+        data_dict = literal_eval(data)
+        cont_table_name = data_dict['cont_table_name']
+
+        # 컨테이너에 정보 삽입
+        insert_data = {'table_name': cont_table_name}
+        result = loop.run_until_complete(get_all_object(loop, str(insert_data)))
+        result = str(result)
+
+        self.connection.send(result.encode())
+
+    # 12 번 요청
+    # 컨테이너 테이블에 있는 적재 물건을 삭제하는 요청
+    def DeleteContainerObject(self, data):
+        data_dict = literal_eval(data)
+        cont_table_name = data_dict['cont_table_name']
+        del_target_object_id = data_dict['del_target_id']
+
+        # 컨테이너에 정보 삽입
+        delete_data = {'table_name': cont_table_name, 'del_target_id': del_target_object_id}
+        result = loop.run_until_complete(del_target_object(loop, str(delete_data)))
+        result = str(result)
+
+        self.connection.send(result.encode())

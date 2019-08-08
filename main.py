@@ -9,9 +9,12 @@ print("tcp server :: start")
 # make public queue
 commandQueue = queue.Queue()
 
+server_ip = "0.0.0.0"
+server_port = 8888
+
 # init module
 # 아이피를 0.0.0.0 으로 바꿈
-andRaspTCP = tcpServer.TCPServer(commandQueue, "0.0.0.0", 8888)
+andRaspTCP = tcpServer.TCPServer(commandQueue, server_ip, server_port)
 andRaspTCP.start()
 
 # set module to executer
